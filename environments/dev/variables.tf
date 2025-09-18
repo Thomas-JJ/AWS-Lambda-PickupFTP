@@ -1,124 +1,70 @@
-
-variable "environment" {
-  type        = string
-}
-
 variable "name_prefix" {
-  description = "Short name prefix for all resources (e.g., ftp-pickup-dev)"
+  description = "Short name prefix for resources (e.g., aloha-ftp-pickup-dev)"
   type        = string
 }
 
-# Packaging (choose one in tfvars)
-variable "lambda_src_dir" {
-  description = "Local dir with handler.py (ZIP deploy). Leave null if using container image."
-  type        = string
-  default     = null
-}
-variable "image_uri" {
-  description = "ECR image URI (container deploy). Leave null to use ZIP."
-  type        = string
-  default     = null
-}
-
-# Where the JSON config will live (Terraform writes it)
 variable "config_bucket" {
-  type = string
-}
-variable "config_key" {
-  type = string
-}
-
-# Core transfer settings (config pieces split into vars)
-variable "protocol" {
-  description = "ftp | ftps | sftp"
+  description = "S3 bucket with config file."
   type        = string
-  default     = "ftps"
 }
 
-variable "ftp_host" { type = string }
-variable "ftp_port" {
-  type    = number
-  default = 21
+variable "config_file" {
+  description = "perfix and file name of config."
+  type        = string
 }
 
-# Usually use Secrets Manager at runtime. If you truly want inline creds,
-# add vars for username/password and set them in module config instead.
-variable "secret_arn" {
-  description = "Existing Secrets Manager ARN that holds {username,password,private_key}."
+
+variable "lambda_src_dir" {
+  description = "Local directory containing handler.py"
+  type        = string
+}
+
+variable "paramiko_layer_zip" {
+  description = "Path to the local paramiko layer zip (e.g., paramiko-layer-312.zip). If null, no layer is created."
   type        = string
   default     = null
 }
 
-variable "source_roots" {
-  description = "Default pickup folder(s) on the FTP server"
-  type        = list(string)
-  default     = ["/incoming"]
-}
-
-# Routes: use empty string for optional fields when not needed
-variable "routes" {
-  description = "Filename routing rules"
-  type = list(object({
-    pattern               = string
-    destination           = string            # s3://bucket/prefix/
-    pickup                = string            # "" to use default
-    archive_on_source     = string            # "" to skip archiving
-    delete_after_transfer = bool              # false keeps original unless archive is set
-    on_conflict           = string            # skip | overwrite | suffix
-  }))
-}
-
-variable "s3_server_side_encryption" {
-  description = "SSE mode for uploads (e.g., AES256)"
+variable "runtime" {
+  description = "Lambda runtime"
   type        = string
-  default     = "AES256"
-}
-variable "s3_storage_class" {
-  type    = string
-  default = null
-}
-variable "s3_acl" {
-  type    = string
-  default = null
+  default     = "python3.12"
 }
 
-variable "delete_after_transfer_default" {
-  description = "Global default if a route doesn't specify"
-  type        = bool
-  default     = false
-}
-variable "on_conflict_default" {
-  description = "Global conflict mode if a route doesn't specify"
+variable "handler" {
+  description = "Lambda handler"
   type        = string
-  default     = "skip"
+  default     = "handler.lambda_handler"
 }
 
-# Schedule & Lambda runtime
-variable "schedule_expression" {
-  type    = string
-  default = "cron(0/15 * * * ? *)"
-}
 variable "memory_size_mb" {
   type    = number
   default = 512
 }
+
 variable "timeout_seconds" {
   type    = number
-  default = 300
-}
-variable "reserved_concurrent_executions" {
-  description = "Set 1 to avoid overlapping runs"
-  type        = number
-  default     = 1
-}
-variable "lambda_layers" {
-  description = "Paramiko layer for SFTP, etc."
-  type        = list(string)
-  default     = []
+  default = 60
 }
 
-# Extra environment vars (merged in)
-variable "extra_env_vars" {
-  type    = map(string)
-  default = {}
+variable "reserved_concurrent_executions" {
+  description = "Set to a number to reserve; null leaves it unreserved"
+  type        = number
+  default     = null
+}
+
+variable "secret_name" {
+  description = "Name of the AWS Secrets Manager secret (e.g. My_FTPShare)"
+  type        = string
+}
+
+variable "schedule_expression" {
+  description = "EventBridge schedule (cron(...) or rate(...))"
+  type        = string
+}
+
+variable "log_retention_days" {
+  type    = number
+
+  default = 14
 }

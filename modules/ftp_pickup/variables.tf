@@ -1,110 +1,69 @@
 variable "name_prefix" {
-  description = "Short name prefix for all resources (e.g., ftp-pickup)"
+  description = "Short name prefix for resources (e.g., aloha-ftp-pickup-dev)"
+  type        = string
+}
+
+variable "config_bucket" {
+  description = "S3 bucket with config file."
+  type        = string
+}
+
+variable "config_file" {
+  description = "perfix and file name of config."
   type        = string
 }
 
 variable "lambda_src_dir" {
-  description = "Local directory containing handler.py and (optionally) vendored deps. Leave null if using container image."
+  description = "Local directory containing handler.py and config.json"
   type        = string
-  default     = null
 }
 
-variable "image_uri" {
-  description = "ECR image URI if deploying as a container. Leave null to use zip + runtime."
+variable "paramiko_layer_zip" {
+  description = "Path to the local paramiko layer zip (e.g., paramiko-layer-312.zip). If null, no layer is created."
   type        = string
   default     = null
 }
 
 variable "runtime" {
+  description = "Lambda runtime"
   type        = string
   default     = "python3.12"
 }
 
 variable "handler" {
+  description = "Lambda handler"
   type        = string
   default     = "handler.lambda_handler"
 }
 
 variable "memory_size_mb" {
-  type        = number
-  default     = 512
+  type    = number
+  default = 512
 }
 
 variable "timeout_seconds" {
-  type        = number
-  default     = 300
+  type    = number
+  default = 60
 }
 
 variable "reserved_concurrent_executions" {
-  description = "Set to 1 to prevent overlapping transfers; null for unbounded."
+  description = "Set to a number to reserve; null leaves it unreserved"
   type        = number
-  default     = 1
-}
-
-variable "lambda_layers" {
-  description = "Optional Lambda layer ARNs (e.g., Paramiko layer for SFTP)"
-  type        = list(string)
-  default     = []
-}
-
-variable "env_vars" {
-  description = "Environment vars for the Lambda"
-  type        = map(string)
-  default     = {}
-}
-
-variable "config_bucket" {
-  description = "S3 bucket that will hold config JSON"
-  type        = string
-}
-
-variable "config_key" {
-  description = "S3 key (object path) for the config JSON"
-  type        = string
-}
-
-variable "config_object" {
-  description = "The config JSON as a Terraform object (will be jsonencoded and uploaded)"
-  type        = any
-}
-
-variable "schedule_expression" {
-  description = "EventBridge cron or rate expression"
-  type        = string
-  default     = "cron(0/15 * * * ? *)"
-}
-
-variable "s3_destination_bucket_arns" {
-  description = "List of destination bucket ARNs the Lambda can write to"
-  type        = list(string)
-  default     = []
-}
-
-variable "create_secret" {
-  description = "If true, create a Secrets Manager secret for FTP creds (JSON)."
-  type        = bool
-  default     = false
-}
-
-variable "secret_name" {
-  description = "Name for the secret (if create_secret=true)."
-  type        = string
   default     = null
-}
-
-variable "secret_json" {
-  description = "JSON object to store in the secret (e.g., {username=..., password=..., private_key=...})."
-  type        = any
-  default     = {}
 }
 
 variable "secret_arn" {
-  description = "Existing secret ARN if not creating one."
+  description = "Secrets Manager ARN that holds host, port, username, password (and optional private_key)"
   type        = string
-  default     = null
+}
+
+variable "schedule_expression" {
+  description = "EventBridge schedule (cron(...) or rate(...))"
+  type        = string
 }
 
 variable "log_retention_days" {
-  type        = number
-  default     = 14
+  type    = number
+
+  default = 14
 }

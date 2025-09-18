@@ -1,0 +1,24 @@
+{
+  "connection": {
+    "protocol": "sftp",
+    "remote_path": "/in"
+  },
+  "defaults": {
+    "delete_after_transfer": false,
+    "overwrite_existing": true,
+    "extension": ".csv"
+  },
+  "transfer_rules": [
+    {
+      "name": "Orders",
+      "file_pattern": "ORDERS_",
+      "target": { "bucket": "MyTargetBucket", "prefix": "Orders/" }
+    },
+    {
+      "name": "OrdersDetails",
+      "file_pattern": "ORDERDETAILS_",
+      "target": { "bucket": "MyTargetBucket", "prefix": "OrderDetails/" }
+    }
+  ]
+}
+

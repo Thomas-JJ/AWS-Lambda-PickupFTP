@@ -1,0 +1,29 @@
+
+name_prefix = "sftp-pickup-dev"
+
+config_bucket = "my-configs=bucket"
+config_file = "sftp_routing/configs.json"
+
+lambda_src_dir = "$./lambda"
+paramiko_layer_zip  =   "paramiko-layer-312.zip"
+###################################################################
+#     credentials secret name
+#       Format As:
+#           username: MyUser
+#           password: Password123!
+#           private_key: privatekeyvaluepastedintothisblock    
+#           host: my.sftpsite.com
+#           port: 22
+###################################################################
+secret_name = "MySFTP_Secret_Name"
+
+schedule_expression            = "cron(0/60 * * * ? *)" 
+
+runtime                         = "python3.12"
+handler                         = "handler.lambda_handler"
+
+memory_size_mb                 = 512
+timeout_seconds                = 60
+reserved_concurrent_executions = null
+
+log_retention_days             = 90
